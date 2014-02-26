@@ -12,6 +12,7 @@
 
 // Needed to obtain the Navigation Controller
 #import "AppDelegate.h"
+#import "SimpleAudioEngine.h"
 
 enum{
     kTagPalyer = 1,
@@ -68,10 +69,23 @@ enum{
                    withObject:nil
                    afterDelay:1.0f];
         
-        _accelerometerEnabled = YES;
+        self.isAccelerometerEnabled = YES;
         
         [self scheduleUpdate];
 		
+        self.isTouchEnabled = YES;
+        _isTouchToShoot = NO;
+        
+        _bulletSprite = [CCSprite spriteWithFile:@"bullet1.png"];
+        _bulletSprite.visible = NO;
+        [self addChild:_bulletSprite z:4];
+        
+        //11.add audio support
+        [[SimpleAudioEngine sharedEngine] preloadEffect:@"bullet.mp3"];
+        [[SimpleAudioEngine sharedEngine] playBackgroundMusic:@"game_music.mp3" loop:YES];
+        [[SimpleAudioEngine sharedEngine] setBackgroundMusicVolume:0.5];
+        
+        
 	}
 	return self;
 }
@@ -104,13 +118,7 @@ enum{
     
     [self performSelector:_cmd withObject:nil afterDelay:arc4random()%3+1];
     
-    [self setTouchEnabled:YES];
-    
-    _isTouchToShoot = NO;
-    
-    _bulletSprite = [CCSprite spriteWithFile:@"bullet1.png"];
-    _bulletSprite.visible = NO;
-    [self addChild:_bulletSprite z:4];
+
     
 }
 
@@ -127,6 +135,9 @@ enum{
 - (void)update:(ccTime)delta
 {
     [self updatePlayerPosition:delta];
+    [self updatePlayerShooting:delta];
+    [self collisionDetection:delta];
+
 }
 
 -(void) updatePlayerPosition:(ccTime)dt{
@@ -153,7 +164,7 @@ enum{
 
 -(void) bulletFinishedMoving:(id)sender
 {
-    
+    _bulletSprite.visible = NO;
 }
 #pragma mark - accelerometer callback
 -(void) accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration{
@@ -177,9 +188,97 @@ enum{
 {
     _isTouchToShoot = YES;
 }
--(void) updatePlayerShooting:(ccTime)dt
-{
+
+-(void) updatePlayerShooting:(ccTime)delta{
+    if (_bulletSprite.visible ) {
+        return;
+    }
     
+    CCSprite *playerSprite = (CCSprite*)[self getChildByTag:kTagPalyer];
+    CGPoint pos = playerSprite.position;
+    
+    CGPoint bulletPos = CGPointMake(pos.x,
+                                    pos.y + playerSprite.contentSize.height/ 2 + _bulletSprite.contentSize.height);
+    _bulletSprite.position = bulletPos;
+    _bulletSprite.visible = YES;
+    
+    CGSize winSize = [CCDirector sharedDirector].winSize;
+    id moveBy = [CCMoveBy actionWithDuration:1.0 position:ccp(0,winSize.height - bulletPos.y)];
+    id callback = [CCCallFuncN actionWithTarget:self selector:@selector(bulletFinishedMoving:)];
+    id ac = [CCSequence actions:moveBy,callback, nil];
+    [_bulletSprite runAction:ac];
+    
+    
+    [[SimpleAudioEngine sharedEngine] playEffect:@"bullet.mp3"];
+    CCLOG(@"_bulletSprite runAction");
+}
+
+-(CGRect) rectOfSprite:(CCSprite*)sprite{
+    return CGRectMake(sprite.position.x - sprite.contentSize.width / 2,
+                      sprite.position.y - sprite.contentSize.height /2,
+                      sprite.contentSize.width, sprite.contentSize.height);
+}
+-(void) collisionDetection:(ccTime)dt
+{
+    CCSprite *enemy;
+    CGRect bulletRect = [self rectOfSprite:_bulletSprite];
+    CCARRAY_FOREACH(_enemySprites, enemy)
+    {
+        if (enemy.visible) {
+            //1.bullet & enemy collision detection
+            CGRect enemyRect = [self rectOfSprite:enemy];
+            if (_bulletSprite.visible && CGRectIntersectsRect(enemyRect, bulletRect)) {
+                enemy.visible = NO;
+                _bulletSprite.visible = NO;
+                
+//                _totalScore += 100;
+//                
+//                if (_totalScore >= 1000) {
+//                    [_gameEndLabel setString:@"游戏胜利！"];
+//                    _gameEndLabel.visible = YES;
+//                    
+//                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
+//                    [_gameEndLabel runAction:scaleTo];
+//                    
+//                    [self unscheduleUpdate];
+//                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:2.0f];
+//                }
+                
+                [_bulletSprite stopAllActions];
+                [enemy stopAllActions];
+                CCLOG(@"collision bullet");
+                break;
+            }
+            
+            //2.enemy & player collision detection
+            CCSprite *playerSprite = (CCSprite*)[self getChildByTag:kTagPalyer];
+            CGRect playRect = [self rectOfSprite:playerSprite];
+            if (playerSprite.visible &&
+                playerSprite.numberOfRunningActions == 0
+                && CGRectIntersectsRect(enemyRect, playRect)) {
+                enemy.visible = NO;
+                
+//                _totalLives -= 1;
+//                
+//                if (_totalLives <= 0) {
+//                    [_gameEndLabel setString:@"游戏失败!"];
+//                    _gameEndLabel.visible = YES;
+//                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
+//                    [_gameEndLabel runAction:scaleTo];
+//                    
+//                    [self unscheduleUpdate];
+//                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:3.0f];
+//                }
+                
+                id blink = [CCBlink actionWithDuration:2.0 blinks:4];
+                [playerSprite stopAllActions];
+                [playerSprite runAction:blink];
+                CCLOG(@"collision player");
+                break;
+            }
+        }
+    }
+
 }
 // on "dealloc" you need to release all your retained objects
 - (void) dealloc

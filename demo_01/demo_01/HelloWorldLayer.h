@@ -29,5 +29,7 @@
 -(void) updatePlayerPosition:(ccTime)dt;
 -(void) bulletFinishedMoving:(id)sender;
 -(void) updatePlayerShooting:(ccTime)dt;
+-(CGRect) rectOfSprite:(CCSprite*)sprite;
+-(void) collisionDetection:(ccTime)dt;
 
 @end
