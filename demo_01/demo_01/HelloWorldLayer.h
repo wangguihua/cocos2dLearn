@@ -7,7 +7,7 @@
 //
 
 
-//#import <GameKit/GameKit.h>
+#import <GameKit/GameKit.h>
 
 // When you import this file, you import all the cocos2d classes
 #import "cocos2d.h"
@@ -15,9 +15,19 @@
 // HelloWorldLayer
 @interface HelloWorldLayer : CCLayer 
 {
-}
+    CCArray * _enemySprites;
+    CGPoint _playerVelocity;
+    
+    BOOL _isTouchToShoot;
+    CCSprite *_bulletSprite;
 
+}
+-(void)spawnEnemy;
 // returns a CCScene that contains the HelloWorldLayer as the only child
 +(CCScene *) scene;
+-(CCSprite *)getAvailableEnemySprite;
+-(void) updatePlayerPosition:(ccTime)dt;
+-(void) bulletFinishedMoving:(id)sender;
+-(void) updatePlayerShooting:(ccTime)dt;
 
 @end
