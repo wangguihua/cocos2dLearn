@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>425E2E76-DF01-457C-A05F-754E48CA9A12</string>
+	<key>IDESourceControlProjectName</key>
+	<string>demo_01</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>CFB30610-821C-424F-B12B-BC603A8016C4</key>
+		<string>https://github.com/wangguihua/cocos2dLearn.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>demo_01/demo_01.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>CFB30610-821C-424F-B12B-BC603A8016C4</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/wangguihua/cocos2dLearn.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>CFB30610-821C-424F-B12B-BC603A8016C4</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>CFB30610-821C-424F-B12B-BC603A8016C4</string>
+			<key>IDESourceControlWCCName</key>
+			<string>cocos2dLearn</string>
+		</dict>
+	</array>
+</dict>
+</plist>
