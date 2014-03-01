@@ -74,6 +74,14 @@
     
     background.position = ccp(size.width/2, size.height/2);
     [self addChild:background];
+    CCAction *moveAction = [CCMoveTo actionWithDuration:10 position:ccp(size.width/2, size.height/2+200)];
+//    [background runAction:moveAction];
+    CCAction *moveBy = [CCMoveBy actionWithDuration:5 position:ccp(size.width, 0)];
+//    [background runAction:moveBy];
+    
+    CCAction *jump = [CCJumpTo actionWithDuration:4 position:ccp(size.width-100, size.height/3) height:50 jumps:3];
+    [background runAction:jump];
+    
     [self schedule:@selector(makeTransition:) interval:2];
     
 }

@@ -54,9 +54,46 @@ enum{
         playerSprite.position = CGPointMake(winSize.width/2, playerSprite.contentSize.height/2+20);
         [self addChild:playerSprite z:4 tag:kTagPalyer];
         
+//        CCAction *jump = [CCJumpTo actionWithDuration:40 position:ccp(winSize.width-100, winSize.height/3) height:50 jumps:30];
+
+//        [playerSprite runAction:jump];
+//        CCAction *jumpBy = [CCJumpBy actionWithDuration:5 position:ccp(200, 100) height:60 jumps:60];
+//        [playerSprite runAction:jumpBy];
+        
+//        ccBezierConfig  c = {ccp(300,200),ccp(50, 50),ccp(-50, -50)};
+//        [playerSprite runAction:[CCBezierTo actionWithDuration:3 bezier:c]];
+//        [playerSprite runAction:[CCBezierBy actionWithDuration:3 bezier:c]];
+
+//        [playerSprite runAction:[CCPlace actionWithPosition:ccp(200, 200)]];
+        
+        
+//        [playerSprite runAction:[CCScaleTo actionWithDuration:3 scale:.2]];
+//        [playerSprite runAction:[CCRotateTo actionWithDuration:2 angle:270]];
+//        [playerSprite runAction:[CCToggleVisibility action]];
+        
+//        [playerSprite runAction:[CCBlink actionWithDuration:4 blinks:10]];
+        
+//        [playerSprite runAction:[CCFlipY actionWithFlipY:YES]];
+        
+//        CCAction *action = [CCSpawn actions:[CCFadeOut actionWithDuration:5],[CCScaleTo actionWithDuration:5 scale:5],[CCFadeIn actionWithDuration:5], nil];
+//        [playerSprite runAction:action];
+        
+        CCAction *scale  = [CCScaleTo actionWithDuration:5 scale:1];
+//        [playerSprite runAction:scale];
+//        CCFiniteTimeAction *action  = [CCSequence actions:[CCFadeIn actionWithDuration:2],[CCBlink actionWithDuration:1 blinks:3], nil];
+//        [playerSprite runAction:action];
+        
+//        id action = [CCMoveBy actionWithDuration:2 position:ccp(100, 0)];
+//        [playerSprite runAction:[CCRepeatForever actionWithAction:action]];
+        
+        
+//        id easeAction  = [CCEaseBounceOut actionWithAction:[CCMoveTo actionWithDuration:2 position:ccp(100+winSize.width/2, winSize.height/2)]];
+//        id action  = [CCSequence actions:easeAction,[CCScaleTo actionWithDuration:2 scale:2], nil];
+//        [playerSprite runAction:action];
+        
         _enemySprites = [[CCArray alloc]init];
         
-        const int NUM_OF_ENEMIES = 10;
+        const int NUM_OF_ENEMIES = 100;
         for (int i=0; i<NUM_OF_ENEMIES; i++) {
             CCSprite *enemySprite = [CCSprite spriteWithFile:@"enemy1.png"];
             enemySprite.position = ccp(0, winSize.height+enemySprite.contentSize.height+10);
@@ -84,6 +121,34 @@ enum{
         [[SimpleAudioEngine sharedEngine] preloadEffect:@"bullet.mp3"];
         [[SimpleAudioEngine sharedEngine] playBackgroundMusic:@"game_music.mp3" loop:YES];
         [[SimpleAudioEngine sharedEngine] setBackgroundMusicVolume:0.5];
+        
+        
+        CCLabelTTF *lifeIndicator = [CCLabelTTF labelWithString:@" 生命值 :" fontName:@"Arial" fontSize:20];
+        lifeIndicator.anchorPoint = ccp(0.0,0.5);
+        lifeIndicator.position = ccp(20,winSize.height - 20);
+        [self addChild:lifeIndicator z:10];
+        
+        _lifeLabel = [CCLabelTTF labelWithString:@"3" fontName:@"Arial" fontSize:20]; _lifeLabel.position = ccpAdd(lifeIndicator.position, ccp(lifeIndicator. contentSize.width+10,0));
+        [self addChild:_lifeLabel z:10];
+        
+        CCLabelTTF *scoreIndicator = [CCLabelTTF labelWithString:@" 分数:" fontName:@"Arial" fontSize:20];
+        scoreIndicator.anchorPoint = ccp(0.0,0.5f);
+        scoreIndicator.position = ccp(winSize.width - 100,winSize.height - 20);
+        [self addChild:scoreIndicator z:10];
+        
+        _scoreLabel = [CCLabelTTF labelWithString:@"00" fontName:@"Arial" fontSize:20];
+        _scoreLabel.position = ccpAdd(scoreIndicator.position, ccp(scoreIndicator. contentSize.width,0));
+        [self addChild:_scoreLabel z:10];
+        
+        _totalLives = 3;
+        _totalScore = 0;
+        
+        _gameEndLabel = [CCLabelTTF labelWithString:@"" fontName:@"Arial" fontSize:40];
+        _gameEndLabel.position = ccp(winSize.width/2,winSize.height/2);
+        _gameEndLabel.visible = NO;
+        [self addChild:_gameEndLabel z:10];
+        
+        
         
         
 	}
@@ -137,6 +202,7 @@ enum{
     [self updatePlayerPosition:delta];
     [self updatePlayerShooting:delta];
     [self collisionDetection:delta];
+    [self updateHUD:delta];
 
 }
 
@@ -165,6 +231,7 @@ enum{
 -(void) bulletFinishedMoving:(id)sender
 {
     _bulletSprite.visible = NO;
+    _isTouchToShoot = NO;
 }
 #pragma mark - accelerometer callback
 -(void) accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration{
@@ -184,13 +251,19 @@ enum{
     
 }
 
--(void)ccTouchEnded:(UITouch *)touch withEvent:(UIEvent *)event
-{
-    _isTouchToShoot = YES;
+-(void) ccTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
+    CCLOG(@"touch!");
+    UITouch *touch = [touches anyObject];
+    CCSprite *palyerSprite  = (CCSprite*)[self getChildByTag:kTagPalyer];
+    CGPoint pt = [self convertTouchToNodeSpace:touch];
+    if (CGRectContainsPoint(palyerSprite.boundingBox, pt)) {
+        _isTouchToShoot=YES;
+    }
+    
 }
 
 -(void) updatePlayerShooting:(ccTime)delta{
-    if (_bulletSprite.visible ) {
+    if (_bulletSprite.visible || !_isTouchToShoot) {
         return;
     }
     
@@ -231,18 +304,18 @@ enum{
                 enemy.visible = NO;
                 _bulletSprite.visible = NO;
                 
-//                _totalScore += 100;
-//                
-//                if (_totalScore >= 1000) {
-//                    [_gameEndLabel setString:@"游戏胜利！"];
-//                    _gameEndLabel.visible = YES;
-//                    
-//                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
-//                    [_gameEndLabel runAction:scaleTo];
-//                    
-//                    [self unscheduleUpdate];
-//                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:2.0f];
-//                }
+                _totalScore += 100;
+                
+                if (_totalScore >= 1000) {
+                    [_gameEndLabel setString:@"游戏胜利！"];
+                    _gameEndLabel.visible = YES;
+                    
+                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
+                    [_gameEndLabel runAction:scaleTo];
+                    
+                    [self unscheduleUpdate];
+                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:2.0f];
+                }
                 
                 [_bulletSprite stopAllActions];
                 [enemy stopAllActions];
@@ -258,17 +331,18 @@ enum{
                 && CGRectIntersectsRect(enemyRect, playRect)) {
                 enemy.visible = NO;
                 
-//                _totalLives -= 1;
-//                
-//                if (_totalLives <= 0) {
-//                    [_gameEndLabel setString:@"游戏失败!"];
-//                    _gameEndLabel.visible = YES;
-//                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
-//                    [_gameEndLabel runAction:scaleTo];
-//                    
-//                    [self unscheduleUpdate];
-//                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:3.0f];
-//                }
+                _totalLives -= 1;
+                
+                if (_totalLives <= 0) {
+                    [_gameEndLabel setString:@"游戏失败!"];
+                    _gameEndLabel.visible = YES;
+                    id scaleTo = [CCScaleTo actionWithDuration:1.0 scale:1.2f];
+                    [_gameEndLabel runAction:scaleTo];
+                    
+                    [self unscheduleUpdate];
+                    
+                    [self performSelector:@selector(onRestartGame) withObject:nil afterDelay:3.0f];
+                }
                 
                 id blink = [CCBlink actionWithDuration:2.0 blinks:4];
                 [playerSprite stopAllActions];
@@ -279,6 +353,25 @@ enum{
         }
     }
 
+}
+
+- (void)onRestartGame
+{
+    CCTransitionFade *transitionScene  = [CCTransitionFade transitionWithDuration:1 scene:[HelloWorldLayer scene] withColor:ccYELLOW];
+    CCTransitionFadeTR *transitionScene1= [CCTransitionFadeTR transitionWithDuration:1 scene:[HelloWorldLayer scene]];
+        [[CCDirector sharedDirector] replaceScene:transitionScene1];
+    
+}
+-(void) updateHUD:(ccTime)dt{
+    [_lifeLabel setString:[NSString stringWithFormat:@"%2d",_totalLives]];
+    [_scoreLabel setString:[NSString stringWithFormat:@"%04d",_totalScore]];
+}
+-(void)draw
+{
+    [super draw];
+    ccDrawColor4F(255, 0, 0, 0);
+    glLineWidth(8);
+    ccDrawLine(ccp(10, 10), ccp(200, 200));
 }
 // on "dealloc" you need to release all your retained objects
 - (void) dealloc
@@ -292,6 +385,11 @@ enum{
     [_enemySprites release];
     _enemySprites = nil;
 }
-
+-(void)onEnter
+{
+    [super onEnter];
+    CGSize winSize = [[CCDirector sharedDirector] winSize];
+    
+}
 
 @end

@@ -21,6 +21,12 @@
     BOOL _isTouchToShoot;
     CCSprite *_bulletSprite;
 
+    CCLabelTTF *_lifeLabel;
+    CCLabelTTF *_scoreLabel;
+    CCLabelTTF *_gameEndLabel;
+    int     _totalLives;
+    int     _totalScore;
+    
 }
 -(void)spawnEnemy;
 // returns a CCScene that contains the HelloWorldLayer as the only child
@@ -31,5 +37,5 @@
 -(void) updatePlayerShooting:(ccTime)dt;
 -(CGRect) rectOfSprite:(CCSprite*)sprite;
 -(void) collisionDetection:(ccTime)dt;
-
+-(void) updateHUD:(ccTime)dt;
 @end
